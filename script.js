@@ -847,10 +847,19 @@
   function enablePowerups() {
     const dBtn = document.getElementById('pu-double');
     const fBtn = document.getElementById('pu-freeze');
+
+    // x2 Clicks available to everyone
     dBtn.disabled = false;
-    fBtn.disabled = false;
     dBtn.classList.remove('active-pu');
-    fBtn.classList.remove('active-pu');
+
+    // Freeze is ADMIN ONLY — hide from regular players
+    if (isAdmin) {
+      fBtn.style.display = '';
+      fBtn.disabled = false;
+      fBtn.classList.remove('active-pu');
+    } else {
+      fBtn.style.display = 'none';
+    }
   }
 
   window.activatePowerup = function (type) {
@@ -858,6 +867,8 @@
       if (puDoubleCooldown || isDoubled) return;
       activateDouble();
     } else if (type === 'freeze') {
+      // Only admins can freeze other players
+      if (!isAdmin) return;
       if (puFreezeCooldown) return;
       activateFreezeOther();
     }
