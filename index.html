@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Click Spam PRO</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ===================== FLASH OVERLAY ===================== -->
+<div id="flash-overlay"></div>
+
+<!-- ===================== SCREEN SHAKE WRAPPER ===================== -->
+<div id="app">
+
+  <!-- ========== AUTH SCREEN ========== -->
+  <div id="screen-auth" class="screen active">
+    <div class="auth-box">
+      <div class="logo">
+        <span class="logo-click">CLICK</span>
+        <span class="logo-spam">SPAM</span>
+        <span class="logo-pro">PRO</span>
+      </div>
+      <p class="tagline">Who clicks faster?</p>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="tab-btn active" onclick="switchTab('login')">Sign In</button>
+        <button class="tab-btn" onclick="switchTab('register')">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="tab-login" class="tab-content active">
+        <input type="text" id="login-username" placeholder="Username" autocomplete="off"/>
+        <input type="password" id="login-password" placeholder="Password"/>
+        <button class="btn-primary" onclick="loginUser()">ENTER THE ARENA</button>
+      </div>
+
+      <!-- Register Form -->
+      <div id="tab-register" class="tab-content">
+        <input type="text" id="reg-username" placeholder="Username (no spaces)" autocomplete="off"/>
+        <input type="text" id="reg-displayname" placeholder="Display Name"/>
+        <input type="password" id="reg-password" placeholder="Password (min 6 chars)"/>
+        <button class="btn-primary" onclick="registerUser()">CREATE ACCOUNT</button>
+      </div>
+
+      <!-- Admin login -->
+      <div class="admin-toggle">
+        <button class="btn-ghost" onclick="toggleAdminLogin()">⚙ Admin Login</button>
+      </div>
+      <div id="admin-login-form" style="display:none;">
+        <input type="password" id="admin-pass-input" placeholder="Admin Password"/>
+        <button class="btn-secondary" onclick="adminLoginByPassword()">ADMIN ACCESS</button>
+      </div>
+
+      <div id="auth-error" class="error-msg"></div>
+    </div>
+  </div>
+
+  <!-- ========== LOBBY SCREEN ========== -->
+  <div id="screen-lobby" class="screen">
+    <div class="lobby-header">
+      <div class="user-info">
+        <span id="lobby-display-name">Player</span>
+        <span id="lobby-score-display" class="score-badge">🏆 0</span>
+      </div>
+      <div class="lobby-actions">
+        <button class="btn-ghost small" onclick="openLeaderboard()">🏅 Leaderboard</button>
+        <button class="btn-ghost small" onclick="logoutUser()">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="lobby-center">
+      <div class="lobby-box">
+        <h2>GAME LOBBY</h2>
+        <div class="room-section">
+          <button class="btn-primary big" onclick="createRoom()">⚡ Create Room</button>
+        </div>
+        <div class="divider">— or —</div>
+        <div class="room-section">
+          <input type="text" id="join-code" placeholder="Enter Room Code" maxlength="6" style="text-transform:uppercase;letter-spacing:4px;"/>
+          <button class="btn-secondary" onclick="joinRoom()">JOIN ROOM</button>
+        </div>
+        <div id="lobby-error" class="error-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ROOM SCREEN ========== -->
+  <div id="screen-room" class="screen">
+    <div class="room-header">
+      <div>
+        <span class="room-label">ROOM CODE:</span>
+        <span id="room-code-display" class="room-code">------</span>
+      </div>
+      <button class="btn-ghost small" onclick="leaveRoom()">← Leave</button>
+    </div>
+
+    <div id="players-list" class="players-list"></div>
+
+    <!-- Admin Panel (shown if admin) -->
+    <div id="admin-panel" style="display:none;" class="admin-panel">
+      <h3>⚙ ADMIN CONTROLS</h3>
+      <div id="admin-player-list"></div>
+    </div>
+
+    <div class="room-bottom">
+      <button id="start-btn" class="btn-primary big" onclick="startGame()" style="display:none;">▶ START GAME</button>
+      <p id="waiting-msg" class="waiting-msg">Waiting for host to start...</p>
+    </div>
+  </div>
+
+  <!-- ========== COUNTDOWN SCREEN ========== -->
+  <div id="screen-countdown" class="screen">
+    <div class="countdown-box">
+      <div id="countdown-number" class="countdown-number">3</div>
+      <div id="round-info" class="round-info">ROUND 1</div>
+    </div>
+  </div>
+
+  <!-- ========== GAME SCREEN ========== -->
+  <div id="screen-game" class="screen">
+    <!-- Top bar -->
+    <div class="game-topbar">
+      <div class="stat-box">
+        <span class="stat-label">YOUR CLICKS</span>
+        <span id="my-clicks" class="stat-value">0</span>
+      </div>
+      <div class="stat-box timer-box">
+        <span class="stat-label">TIME</span>
+        <span id="timer-display" class="stat-value timer-value">5</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">CPS</span>
+        <span id="cps-display" class="stat-value">0.0</span>
+      </div>
+    </div>
+
+    <!-- Power-up bar -->
+    <div class="powerup-bar">
+      <button class="powerup-btn" id="pu-double" onclick="activatePowerup('double')">⚡ x2 Clicks</button>
+      <button class="powerup-btn" id="pu-freeze" onclick="activatePowerup('freeze')">❄ Freeze</button>
+    </div>
+
+    <!-- Active effect indicator -->
+    <div id="effect-indicator" class="effect-indicator"></div>
+
+    <!-- Big Click Button -->
+    <div class="click-area">
+      <button id="click-btn" class="click-button" onclick="handleClick()">
+        <span class="click-btn-text">CLICK!</span>
+        <span class="click-btn-ripple"></span>
+      </button>
+    </div>
+
+    <!-- Live Leaderboard -->
+    <div class="live-leaderboard">
+      <h3 class="lb-title">LIVE</h3>
+      <div id="live-lb-list"></div>
+    </div>
+
+    <!-- Round score -->
+    <div class="round-score-display">
+      <span id="round-score-text">Round 1 — Score: 0 - 0</span>
+    </div>
+  </div>
+
+  <!-- ========== ROUND RESULT SCREEN ========== -->
+  <div id="screen-round-result" class="screen">
+    <div class="result-box">
+      <h2 id="round-result-title">Round Over!</h2>
+      <div id="round-result-scores" class="result-scores"></div>
+      <div id="round-result-wins" class="result-wins"></div>
+      <p class="next-round-msg">Next round starting...</p>
+    </div>
+  </div>
+
+  <!-- ========== GAME OVER SCREEN ========== -->
+  <div id="screen-gameover" class="screen">
+    <div class="gameover-box">
+      <div id="gameover-fireworks" class="fireworks"></div>
+      <h1 id="gameover-title">GAME OVER</h1>
+      <div id="gameover-winner" class="winner-display"></div>
+      <div id="gameover-final-scores" class="final-scores"></div>
+      <button class="btn-primary big" onclick="returnToLobby()">BACK TO LOBBY</button>
+    </div>
+  </div>
+
+  <!-- ========== LEADERBOARD MODAL ========== -->
+  <div id="leaderboard-modal" class="modal-overlay" style="display:none;" onclick="closeLeaderboard()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <h2>🏆 GLOBAL LEADERBOARD</h2>
+      <div id="global-lb-list" class="global-lb"></div>
+      <button class="btn-ghost" onclick="closeLeaderboard()">Close</button>
+    </div>
+  </div>
+
+</div><!-- end #app -->
+
+<!-- ===================== FIREBASE SDK ===================== -->
+<!-- 
+  PASTE YOUR FIREBASE CONFIG BELOW.
+  Replace the firebaseConfig object with the one from your Firebase project.
+  See SETUP GUIDE at bottom of script.js for detailed instructions.
+-->
+<script type="module">
+  // =====================================================
+  // STEP 4: PASTE YOUR FIREBASE CONFIG HERE
+  // =====================================================
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getDatabase } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  // Initialize Firebase and expose globally
+  const app = initializeApp(firebaseConfig);
+  window._firebaseAuth = getAuth(app);
+  window._firebaseDB = getDatabase(app);
+
+  // Load main script after Firebase is ready
+  const s = document.createElement('script');
+  s.src = 'script.js';
+  document.body.appendChild(s);
+</script>
+
+</body>
+</html>
